@@ -57,8 +57,6 @@ Contact* file_to_contact(const char *fileName)
     }
 
     strcpy(newContact->fileName, fileName);
-    newContact->next = NULL;
-    newContact->prev = NULL;
 
     char line[256];
     while (fgets(line, sizeof(line), currentFile))
@@ -82,20 +80,27 @@ Contact* file_to_contact(const char *fileName)
 }
 
 void add_contact(Contact **head, Contact *newContact) {
-    if (*head == NULL) {
+    
+    if (*head == NULL) 
+    {
         *head = newContact;
-    } else {
+    } 
+    else 
+    {
         Contact *last = *head;
-        while (last->next != NULL) {
+        while (last->next != NULL) 
+        {
             last = last->next;
         }
         last->next = newContact;
         newContact->prev = last;
+        newContact->next = NULL;
     }
 }
 
 void free_contacts(Contact *head) {
-    while (head != NULL) {
+    while (head != NULL) 
+    {
         Contact *temp = head;
         head = head->next;
         free(temp);

@@ -213,20 +213,41 @@ int update_contact_file(Contact *contact)
 }
 
 void remove_contact(Contact *contact) {
-    if (remove(contact->fileName) == -1)
-    {
-        fprintf(stderr, "Error: Could not delete file: %s.\n", contact->fileName);
+    if (contact == NULL) {
         return;
     }
 
-    if (contact->prev != NULL)
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) == NULL) {
+        perror("getcwd() error");
+        return;
+    }
+
+    if (chdir("contacts") == -1) {
+        fprintf(stderr, "Error: Could not change directory to 'contacts/'.\n");
+        return;
+    }
+    if (remove(contact->fileName) == -1) 
+    {
+        fprintf(stderr, "Error: Could not delete file: %s.\n", contact->fileName);
+        chdir(cwd);
+        return;
+    }
+
+    if (chdir(cwd) == -1) {
+        fprintf(stderr, "Error: Could not change back to the original directory.\n");
+        return;
+    }
+
+    if (contact->prev != NULL) {
         contact->prev->next = contact->next;
-
-    if (contact->next != NULL)
-        contact->next->prev = contact->next;
-
+    }
+    if (contact->next != NULL) {
+        contact->next->prev = contact->prev;
+    }
     free(contact);
 }
+
 
 
 void create_new_contact(DIR *path, Contact *head)
@@ -247,7 +268,7 @@ void create_new_contact(DIR *path, Contact *head)
     if (update_contact_file(newContact) != 0)
     {
         fprintf(stderr, "Error: Failed to update contact file %s.\n", newContact->fileName);
-        //remove_contact(newContact);
+        remove_contact(newContact);
     }
 
     add_contact(&head, newContact);
@@ -285,4 +306,16 @@ void update_contact(Contact *contact)
 
 
     update_contact_file(contact);
+}
+
+Contact* find_contact_by_index(Contact *head, int index) 
+{
+    int i = 1;
+    Contact *current = head;
+    while (current != NULL && i < index) 
+    {
+        current = current->next;
+        i++;
+    }
+    return current;
 }

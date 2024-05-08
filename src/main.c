@@ -29,7 +29,7 @@ int main(void)
         char fileName[256];
         snprintf(fileName, sizeof(fileName), "%s%s", contactsPath, entry->d_name);
 
-        Contact *newContact = file_to_contact(fileName);
+        Contact *newContact = file_to_contact(fileName, entry->d_name);
         if (newContact != NULL)
         {
             add_contact(&head, newContact);
@@ -38,9 +38,6 @@ int main(void)
 
     /*** Create new contact ***/
     create_new_contact(contactsDir, head);
-
-    closedir(contactsDir);
-
 
     // Print first contact's first name
     if (head != NULL) {
@@ -51,6 +48,15 @@ int main(void)
         printf("No contacts found.\n");
     }
 
+    /*** Change contact data ***/
+
+    update_contact(head->next);
+
+    //
+
+    remove_contact(head->next->next);
+
+    closedir(contactsDir);
     // Free memory
     free_contacts(head);
     return 0;

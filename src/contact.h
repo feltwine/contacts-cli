@@ -15,9 +15,11 @@ typedef struct Contact {
 } Contact;
 
 int init_contacts_dir(const char *contactsPath, DIR **contactsDir);
-Contact* file_to_contact(const char *fileName);
+Contact* file_to_contact(const char *filePath, const char *fileName);
 void add_contact(Contact **head, Contact *newContact);
 void free_contacts(Contact *head);
 void create_new_contact(DIR *path, Contact *head);
+void remove_contact(Contact *contact);
+void update_contact(Contact *contact);
 
 #endif

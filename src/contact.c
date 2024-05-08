@@ -39,12 +39,12 @@ void value_to_struct(char *target, const char *value) {
 }
 
 
-Contact* file_to_contact(const char *fileName)
+Contact* file_to_contact(const char *filePath, const char *fileName)
 {
-    FILE *currentFile = fopen(fileName, "r");
+    FILE *currentFile = fopen(filePath, "r");
     if (currentFile == NULL)
     {
-        fprintf(stderr, "Error: Could not open file %s\n", fileName);
+        fprintf(stderr, "Error: Could not open file %s\n", filePath);
         return NULL;
     }
 
@@ -182,15 +182,23 @@ int update_contact_file(Contact *contact)
 
     char line[400];
     while (fgets(line, sizeof(line), file) != NULL) {
-        if (strncmp(line, "first-name: ", strlen("first-name: ")) == 0) {
+        if (strncmp(line, "first-name: ", strlen("first-name: ")) == 0) 
+        {
             fprintf(tempFile, "first-name: \"%s\"\n", contact->firstName);
-        } else if (strncmp(line, "last-name: ", strlen("last-name: ")) == 0) {
+        } 
+        else if (strncmp(line, "last-name: ", strlen("last-name: ")) == 0) 
+        {
             fprintf(tempFile, "last-name: \"%s\"\n", contact->lastName);
-        } else if (strncmp(line, "email-address: ", strlen("email-address: ")) == 0) {
+        } 
+        else if (strncmp(line, "email-address: ", strlen("email-address: ")) == 0) {
             fprintf(tempFile, "email-address: \"%s\"\n", contact->emailAddress);
-        } else if (strncmp(line, "phone-number: ", strlen("phone-number: ")) == 0) {
+        } 
+        else if (strncmp(line, "phone-number: ", strlen("phone-number: ")) == 0) 
+        {
             fprintf(tempFile, "phone-number: \"%s\"\n", contact->phoneNum);
-        } else {
+        } 
+        else 
+        {
             fputs(line, tempFile);
         }
     }
@@ -204,10 +212,22 @@ int update_contact_file(Contact *contact)
     return 0;
 }
 
-void remove_contact(Contact *contact)
-{
+void remove_contact(Contact *contact) {
+    if (remove(contact->fileName) == -1)
+    {
+        fprintf(stderr, "Error: Could not delete file: %s.\n", contact->fileName);
+        return;
+    }
 
+    if (contact->prev != NULL)
+        contact->prev->next = contact->next;
+
+    if (contact->next != NULL)
+        contact->next->prev = contact->next;
+
+    free(contact);
 }
+
 
 void create_new_contact(DIR *path, Contact *head)
 {
@@ -227,8 +247,42 @@ void create_new_contact(DIR *path, Contact *head)
     if (update_contact_file(newContact) != 0)
     {
         fprintf(stderr, "Error: Failed to update contact file %s.\n", newContact->fileName);
-        remove_contact(newContact);
+        //remove_contact(newContact);
     }
 
     add_contact(&head, newContact);
+}
+
+void update_contact(Contact *contact)
+{
+    int choice;
+
+    printf("Which information would you like to change?\n");
+    printf("1. First Name\n");
+    printf("2. Last Name\n");
+    printf("3. Email Address\n");
+    printf("4. Phone Number\n");
+    printf("Enter option numbers (separated by spaces): ");
+    scanf("%d", &choice);
+
+    switch(choice) {
+        case 1:
+            scanf("%s", contact->firstName);
+            break;
+        case 2:
+            scanf("%s", contact->lastName);
+            break;
+        case 3:
+            scanf("%s", contact->emailAddress);
+            break;
+        case 4:
+            scanf("%s", contact->phoneNum);
+            break;
+        default:
+            printf("Invalid choice\n");
+            break;
+    }
+
+
+    update_contact_file(contact);
 }

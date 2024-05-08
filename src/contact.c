@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <time.h>
+
+#define MAX_FIELD_LENGTH 50
 
 int init_contacts_dir(const char *contactsPath, DIR **contactsDir)
 {
@@ -24,11 +28,16 @@ int init_contacts_dir(const char *contactsPath, DIR **contactsDir)
     return 1;
 }
 
-void value_to_struct(char *target, const char *value)
-{
-    strncpy(target, value, strlen(value));
-    target[strlen(value)] = '\0';
+void value_to_struct(char *target, const char *value) {
+    size_t len = strlen(value);
+    if (len < MAX_FIELD_LENGTH) {
+        strlcpy(target, value, MAX_FIELD_LENGTH + 1); // Ensure null-termination
+    } else {
+        fprintf(stderr, "Error: Value too long.\n");
+        // Handle error or truncate the value if appropriate
+    }
 }
+
 
 Contact* file_to_contact(const char *fileName)
 {
@@ -72,30 +81,149 @@ Contact* file_to_contact(const char *fileName)
     return newContact;
 }
 
-void add_contact(Contact **head, Contact *newContact)
-{
-    if (*head == NULL)
-    {
+void add_contact(Contact **head, Contact *newContact) {
+    if (*head == NULL) {
         *head = newContact;
-        return;
+    } else {
+        Contact *last = *head;
+        while (last->next != NULL) {
+            last = last->next;
+        }
+        last->next = newContact;
+        newContact->prev = last;
     }
-
-    Contact *last = *head;
-    while(last->next != NULL)
-    {
-        last = last->next;
-    }
-
-    last->next = newContact;
-    newContact->prev = last;
 }
 
-void free_contacts(Contact *head)
-{
-    while (head != NULL)
-    {
+void free_contacts(Contact *head) {
+    while (head != NULL) {
         Contact *temp = head;
         head = head->next;
         free(temp);
     }
+}
+
+char* new_file_name(DIR *path)
+{
+    srand(time(NULL));
+    int fileNum = rand() % 10000;
+    char *fileName = malloc(9 * sizeof(char)); // Allocate memory for the file name
+    if (fileName == NULL)
+    {
+        fprintf(stderr, "Error: Failed to allocate memory.\n");
+        return NULL;
+    }
+    sprintf(fileName, "%04d.txt", fileNum);
+
+    struct dirent *entry;
+    int unique = 1;
+    while (unique == 1)
+        unique = 0;
+        while ((entry = readdir(path)) != NULL)
+        {
+            if (strcmp(entry->d_name, fileName) == 0)
+            {
+                unique = 1;
+                fileNum = rand() % 10000;
+                sprintf(fileName, "%04d.txt", fileNum);
+                break;
+            }
+        }
+
+
+    return fileName;
+}
+
+void generate_new_file(char *fileName)
+{
+    if (chdir("contacts") != 0)
+    {
+        fprintf(stderr, "Error: Failed to change directory to 'contacts/'.\n");
+        exit(1);
+    }
+
+    FILE *newFile = fopen(fileName, "w");
+    if (newFile == NULL)
+    {
+        fprintf(stderr, "Error: Failed to create new file.\n");
+        exit(1);
+    }
+
+    fprintf(newFile, "first-name: \"\"\n");
+    fprintf(newFile, "last-name: \"\"\n");
+    fprintf(newFile, "email-address: \"\"\n");
+    fprintf(newFile, "phone-number: \"\"\n");
+
+    fclose(newFile);
+}
+
+int update_contact_file(Contact *contact)
+{
+    FILE *file = fopen(contact->fileName, "r+");
+    if (file == NULL)
+    {
+        fprintf(stderr, "Failed to open file %s.\n", contact->fileName);
+        return 1;
+    }
+
+    char tempFileName[256];
+    strcpy(tempFileName, "temp.txt");
+    FILE *tempFile = fopen(tempFileName, "w");
+    if (tempFile == NULL)
+    {
+        fprintf(stderr, "Failed to create temporary file.\n");
+        fclose(file);
+        return 1;
+    }
+
+    char line[400];
+    while (fgets(line, sizeof(line), file) != NULL) {
+        if (strncmp(line, "first-name: ", strlen("first-name: ")) == 0) {
+            fprintf(tempFile, "first-name: \"%s\"\n", contact->firstName);
+        } else if (strncmp(line, "last-name: ", strlen("last-name: ")) == 0) {
+            fprintf(tempFile, "last-name: \"%s\"\n", contact->lastName);
+        } else if (strncmp(line, "email-address: ", strlen("email-address: ")) == 0) {
+            fprintf(tempFile, "email-address: \"%s\"\n", contact->emailAddress);
+        } else if (strncmp(line, "phone-number: ", strlen("phone-number: ")) == 0) {
+            fprintf(tempFile, "phone-number: \"%s\"\n", contact->phoneNum);
+        } else {
+            fputs(line, tempFile);
+        }
+    }
+
+    fclose(file);
+    fclose(tempFile);
+
+    remove(contact->fileName);
+    rename(tempFileName, contact->fileName);
+
+    return 0;
+}
+
+void remove_contact(Contact *contact)
+{
+
+}
+
+void create_new_contact(DIR *path, Contact *head)
+{
+    Contact *newContact = (Contact*)malloc(sizeof(Contact));
+    strncpy(newContact->fileName, new_file_name(path), sizeof(newContact->fileName));
+    generate_new_file(newContact->fileName);
+
+    printf("First name: ");
+    scanf("%s", newContact->firstName);
+    printf("Last name: ");
+    scanf("%s", newContact->lastName);
+    printf("Email address: ");
+    scanf("%s", newContact->emailAddress);
+    printf("Phone number: ");
+    scanf("%s", newContact->phoneNum);
+    
+    if (update_contact_file(newContact) != 0)
+    {
+        fprintf(stderr, "Error: Failed to update contact file %s.\n", newContact->fileName);
+        remove_contact(newContact);
+    }
+
+    add_contact(&head, newContact);
 }

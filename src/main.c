@@ -5,6 +5,7 @@
 #include <string.h>
 #include <dirent.h>
 
+
 int main(void)
 {
     /*** init ***/
@@ -13,13 +14,15 @@ int main(void)
     Contact *head = NULL;
     struct dirent *entry;
 
-    if (!init_contacts_dir(contactsPath, &contactsDir)) {
+    if (!init_contacts_dir(contactsPath, &contactsDir))
+    {
         fprintf(stderr, "Error: Could not initialize contacts directory.\n");
         return 1;
     }
 
     // Read contacts from files
-    while ((entry = readdir(contactsDir)) != NULL) {
+    while ((entry = readdir(contactsDir)) != NULL) 
+    {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
 
@@ -27,16 +30,24 @@ int main(void)
         snprintf(fileName, sizeof(fileName), "%s%s", contactsPath, entry->d_name);
 
         Contact *newContact = file_to_contact(fileName);
-        if (newContact != NULL) {
+        if (newContact != NULL)
+        {
             add_contact(&head, newContact);
         }
     }
+
+    /*** Create new contact ***/
+    create_new_contact(contactsDir, head);
+
     closedir(contactsDir);
+
 
     // Print first contact's first name
     if (head != NULL) {
-        printf("First name: %s\n", head->firstName);
-    } else {
+        printf("First name: %s\n", head->next->firstName);
+    } 
+    else 
+    {
         printf("No contacts found.\n");
     }
 

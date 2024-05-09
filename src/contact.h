@@ -1,4 +1,3 @@
-// contact.h
 #ifndef CONTACT_H
 #define CONTACT_H
 
@@ -6,23 +5,26 @@
 
 typedef struct Contact {
     char fileName[10];
+    char firstName[50];
+    char lastName[50];
+    char emailAddress[150];
+    char phoneNum[20];
     struct Contact *prev;
     struct Contact *next;
-    char firstName[100];
-    char lastName[100];
-    char emailAddress[300];
-    char phoneNum[50];
 } Contact;
 
 int init_contacts_dir(const char *contactsPath, DIR **contactsDir);
 Contact* file_to_contact(const char *filePath, const char *fileName);
 void add_contact(Contact **head, Contact *newContact);
 void free_contacts(Contact *head);
-void create_new_contact(DIR *path, Contact *head);
-void remove_contact(Contact *contact);
+char* new_file_name(DIR *path);
+void generate_new_file(char *fileName);
+int update_contact_file(Contact *contact);
+void remove_contact(Contact **head, Contact *contact);
+void create_new_contact(DIR *path, Contact **head);
 void update_contact(Contact *contact);
 Contact* find_contact_by_index(Contact *head, int index);
 void show_contact_detail(Contact *contact);
-void search_contact(Contact *head, char *value);
+Contact* search_contact(Contact *head, const char *searchName);
 
 #endif

@@ -74,6 +74,7 @@ Contact* file_to_contact(const char *filePath, const char *fileName)
             else if (strcmp(key, "phone-number") == 0)
                 value_to_struct(newContact->phoneNum, value);
         }
+        fflush(stdout);
     }
 
     fclose(currentFile);
@@ -85,6 +86,7 @@ void add_contact(Contact **head, Contact *newContact) {
     if (*head == NULL) 
     {
         *head = newContact;
+        return;
     } 
     else 
     {
@@ -160,26 +162,15 @@ void generate_new_file(char *fileName)
     fprintf(newFile, "phone-number: \"\"\n");
 
     fclose(newFile);
+    chdir("..");
 }
 
 int update_contact_file(Contact *contact)
 {
-    // Check if the current directory is "contacts/"
-    char cwd[1024];
-    if (getcwd(cwd, sizeof(cwd)) == NULL)
+   if (chdir("contacts") != 0)
     {
-        perror("getcwd() error");
-        return 1;
-    }
-
-    if (strcmp(cwd, "contacts/") != 0)
-    {
-        // Change current directory to "contacts/"
-        if (chdir("contacts/") != 0)
-        {
-            perror("chdir() error");
-            return 1;
-        }
+        fprintf(stderr, "Error: Failed to change directory to 'contacts/'.\n");
+        exit(1);
     }
 
     FILE *file = fopen(contact->fileName, "r+");
@@ -228,10 +219,12 @@ int update_contact_file(Contact *contact)
     remove(contact->fileName);
     rename(tempFileName, contact->fileName);
 
+    chdir("..");
+
     return 0;
 }
 
-void remove_contact(Contact *contact) {
+void remove_contact(Contact **head, Contact *contact) {
     if (contact == NULL) {
         return;
     }
@@ -241,13 +234,13 @@ void remove_contact(Contact *contact) {
         perror("getcwd() error");
         return;
     }
-
+    
     if (chdir("contacts") == -1) {
         fprintf(stderr, "Error: Could not change directory to 'contacts/'.\n");
         return;
     }
-    if (remove(contact->fileName) == -1) 
-    {
+    
+    if (remove(contact->fileName) == -1) {
         fprintf(stderr, "Error: Could not delete file: %s.\n", contact->fileName);
         chdir(cwd);
         return;
@@ -260,7 +253,11 @@ void remove_contact(Contact *contact) {
 
     if (contact->prev != NULL) {
         contact->prev->next = contact->next;
+    } else {
+        // This is the head of the list
+        *head = contact->next;
     }
+
     if (contact->next != NULL) {
         contact->next->prev = contact->prev;
     }
@@ -269,31 +266,40 @@ void remove_contact(Contact *contact) {
 
 
 
-void create_new_contact(DIR *path, Contact *head)
-{
+void create_new_contact(DIR *path, Contact **head) {
     Contact *newContact = (Contact*)malloc(sizeof(Contact));
+    if (newContact == NULL) {
+        fprintf(stderr, "Error: Memory allocation failed.\n");
+        return;
+    }
+
     strncpy(newContact->fileName, new_file_name(path), sizeof(newContact->fileName));
     generate_new_file(newContact->fileName);
 
     printf("First name: ");
     scanf("%s", newContact->firstName);
+    fflush(stdout);
     printf("Last name: ");
     scanf("%s", newContact->lastName);
+    fflush(stdout);
     printf("Email address: ");
     scanf("%s", newContact->emailAddress);
+    fflush(stdout);
     printf("Phone number: ");
     scanf("%s", newContact->phoneNum);
+    fflush(stdout);
     
-    if (update_contact_file(newContact) != 0)
-    {
+    if (update_contact_file(newContact) != 0) {
         fprintf(stderr, "Error: Failed to update contact file %s.\n", newContact->fileName);
-        remove_contact(newContact);
+        free(newContact);
+        return;
     }
 
-    add_contact(&head, newContact);
+    add_contact(head, newContact);
 
     show_contact_detail(newContact);
 }
+
 
 void update_contact(Contact *contact)
 {
@@ -306,19 +312,24 @@ void update_contact(Contact *contact)
     printf("4. Phone Number\n");
     printf("Enter option numbers (separated by spaces): ");
     scanf("%d", &choice);
+    fflush(stdout);
 
     switch(choice) {
         case 1:
             scanf("%s", contact->firstName);
+            fflush(stdout);
             break;
         case 2:
             scanf("%s", contact->lastName);
+            fflush(stdout);
             break;
         case 3:
             scanf("%s", contact->emailAddress);
+            fflush(stdout);
             break;
         case 4:
             scanf("%s", contact->phoneNum);
+            fflush(stdout);
             break;
         default:
             printf("Invalid choice\n");
@@ -363,4 +374,62 @@ void show_contact_detail(Contact *contact)
 
     // Wait for Enter key
     getchar();
+}
+
+Contact* search_contact(Contact *head, const char *searchName) {
+    // Convert searchName to lowercase for case-insensitive comparison
+    char searchNameLower[MAX_FIELD_LENGTH];
+    strncpy(searchNameLower, searchName, MAX_FIELD_LENGTH);
+    for (int i = 0; searchNameLower[i]; i++) {
+        searchNameLower[i] = tolower(searchNameLower[i]);
+    }
+
+    Contact *searchResultHead = NULL; // Head of the search results linked list
+    Contact *searchResultTail = NULL; // Tail of the search results linked list
+
+    Contact *current = head;
+    while (current != NULL) {
+        // Convert current contact's names to lowercase for comparison
+        char firstNameLower[MAX_FIELD_LENGTH], lastNameLower[MAX_FIELD_LENGTH];
+        strncpy(firstNameLower, current->firstName, MAX_FIELD_LENGTH);
+        strncpy(lastNameLower, current->lastName, MAX_FIELD_LENGTH);
+        for (int i = 0; firstNameLower[i]; i++) {
+            firstNameLower[i] = tolower(firstNameLower[i]);
+        }
+        for (int i = 0; lastNameLower[i]; i++) {
+            lastNameLower[i] = tolower(lastNameLower[i]);
+        }
+
+        // Check if the searchName matches either first name or last name
+        if (strstr(firstNameLower, searchNameLower) != NULL || strstr(lastNameLower, searchNameLower) != NULL) {
+            // Create a new contact node for the search result
+            Contact *searchResult = (Contact*)malloc(sizeof(Contact));
+            if (searchResult == NULL) {
+                // Handle memory allocation failure
+                fprintf(stderr, "Error: Memory allocation failed.\n");
+                return NULL;
+            }
+            // Copy contact details to the search result node
+            strncpy(searchResult->firstName, current->firstName, MAX_FIELD_LENGTH);
+            strncpy(searchResult->lastName, current->lastName, MAX_FIELD_LENGTH);
+            strncpy(searchResult->emailAddress, current->emailAddress, MAX_FIELD_LENGTH);
+            strncpy(searchResult->phoneNum, current->phoneNum, 20);
+            searchResult->prev = NULL;
+            searchResult->next = NULL;
+
+            // Add the search result node to the search results linked list
+            if (searchResultHead == NULL) {
+                searchResultHead = searchResult;
+                searchResultTail = searchResult;
+            } else {
+                searchResultTail->next = searchResult;
+                searchResult->prev = searchResultTail;
+                searchResultTail = searchResult;
+            }
+        }
+
+        current = current->next;
+    }
+
+    return searchResultHead;
 }

@@ -46,10 +46,11 @@ int main(void)
             printf("Option: ");
             int choice;
             scanf("%d", &choice);
+            fflush(stdout);
             switch (choice)
             {
             case 1:
-                create_new_contact(contactsDir, head);
+                create_new_contact(contactsDir, &head);
                 break;
             case 2:
                 state = 1;
@@ -82,17 +83,21 @@ int main(void)
             printf("[ 6 ]    quit program\n");
             printf("Option: ");
             scanf("%d", &choice);
+            fflush(stdout);
             int choice_index;
+            Contact *temp = (Contact*)malloc(sizeof(Contact));
+            printf("\n\n");
 
             switch (choice)
             {
                 case 1:
-                    create_new_contact(contactsDir, head);
+                    create_new_contact(contactsDir, &head);
                     break;
                 case 2:
                     printf("Enter index of contact to show details: ");
                     scanf("%d", &choice_index);
-                    Contact *temp = find_contact_by_index(head, choice_index);
+                    fflush(stdout);
+                    temp = find_contact_by_index(head, choice_index);
                     if (temp != NULL) {
                         show_contact_detail(temp);
                     } else {
@@ -102,6 +107,7 @@ int main(void)
                 case 3:
                     printf("Enter index of contact to update: ");
                     scanf("%d", &choice_index);
+                    fflush(stdout);
                     temp = find_contact_by_index(head, choice_index);
                     if (temp != NULL) {
                         update_contact(temp);
@@ -115,11 +121,42 @@ int main(void)
                 case 4:
                     printf("Enter index of contact to remove: ");
                     scanf("%d", &choice_index);
+                    fflush(stdout);
                     temp = find_contact_by_index(head, choice_index);
                     if (temp != NULL) {
-                        remove_contact(temp);
+                        remove_contact(&head, temp);
                     } else {
                         printf("Contact not found.\n");
+                    }
+                    break;
+                case 5:
+                    index = 1;
+                    char searchName[50]; 
+                    printf("Enter contact name: ");
+                    scanf("%s", searchName);
+                    temp = search_contact(head, searchName);
+                    printf("Resluts: \n");
+                    printf("Index |     contact name \n");
+                    while(temp != NULL)
+                    {
+                        printf("  %d   |    %s %s\n", index, temp->firstName, temp->lastName);
+                        index++;
+                        temp = temp->next;
+                    }
+
+                    fflush(stdout);
+
+                    printf("Enter index of contact to show details(0 for retun): ");
+                    scanf("%d", &choice_index);
+                    printf("\n\n");
+                    if (choice_index != 0)
+                    {
+                        temp = find_contact_by_index(head, choice_index);
+                        if (temp != NULL) {
+                            show_contact_detail(temp);
+                        } else {
+                            printf("Contact not found.\n");
+                        }
                     }
                     break;
                 case 6:

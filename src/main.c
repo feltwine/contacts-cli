@@ -1,10 +1,8 @@
-// main.c
 #include "contact.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-
 
 int main(void)
 {
@@ -73,19 +71,17 @@ int main(void)
                 index++;
                 current = current->next;
             }
-
-            free(current);
             
             int choice;
             printf("Choose option: \n");
             printf("[ 1 ]    create new contact\n");
-            printf("[ 2 ]    show contact detials\n");
+            printf("[ 2 ]    show contact details\n");
             printf("[ 3 ]    change existing contact\n");
             printf("[ 4 ]    remove existing contact\n");
-            printf("[ 5 ]    quit program\n");
+            printf("[ 5 ]    search contact\n");
+            printf("[ 6 ]    quit program\n");
             printf("Option: ");
             scanf("%d", &choice);
-            Contact *temp = head;
             int choice_index;
 
             switch (choice)
@@ -94,27 +90,22 @@ int main(void)
                     create_new_contact(contactsDir, head);
                     break;
                 case 2:
-                    if (temp == NULL) {
-                        break;
-                    }
                     printf("Enter index of contact to show details: ");
                     scanf("%d", &choice_index);
-                    temp = find_contact_by_index(head, choice_index);
+                    Contact *temp = find_contact_by_index(head, choice_index);
                     if (temp != NULL) {
-                        //show_contact_details(temp);
+                        show_contact_detail(temp);
                     } else {
                         printf("Contact not found.\n");
                     }
                     break;
                 case 3:
-                    if (temp == NULL) {
-                        break;
-                    }
                     printf("Enter index of contact to update: ");
                     scanf("%d", &choice_index);
                     temp = find_contact_by_index(head, choice_index);
                     if (temp != NULL) {
                         update_contact(temp);
+                        show_contact_detail(temp);
                     } else {
                         printf("Contact not found.\n");
                     }
@@ -122,9 +113,6 @@ int main(void)
 
                 // Inside the main function, when the user wants to remove a contact
                 case 4:
-                    if (temp == NULL) {
-                        break;
-                    }
                     printf("Enter index of contact to remove: ");
                     scanf("%d", &choice_index);
                     temp = find_contact_by_index(head, choice_index);
@@ -134,7 +122,7 @@ int main(void)
                         printf("Contact not found.\n");
                     }
                     break;
-                case 5:
+                case 6:
                     state = 1;
                     break;
                 default:

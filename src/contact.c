@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <ctype.h>
 
 #define MAX_FIELD_LENGTH 50
 
@@ -163,6 +164,24 @@ void generate_new_file(char *fileName)
 
 int update_contact_file(Contact *contact)
 {
+    // Check if the current directory is "contacts/"
+    char cwd[1024];
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        perror("getcwd() error");
+        return 1;
+    }
+
+    if (strcmp(cwd, "contacts/") != 0)
+    {
+        // Change current directory to "contacts/"
+        if (chdir("contacts/") != 0)
+        {
+            perror("chdir() error");
+            return 1;
+        }
+    }
+
     FILE *file = fopen(contact->fileName, "r+");
     if (file == NULL)
     {
@@ -272,6 +291,8 @@ void create_new_contact(DIR *path, Contact *head)
     }
 
     add_contact(&head, newContact);
+
+    show_contact_detail(newContact);
 }
 
 void update_contact(Contact *contact)
@@ -318,4 +339,28 @@ Contact* find_contact_by_index(Contact *head, int index)
         i++;
     }
     return current;
+}
+
+void show_contact_detail(Contact *contact)
+{
+    if (contact == NULL) {
+        printf("Contact is NULL.\n");
+        return;
+    }
+
+    printf("Contact details: \n");
+    printf("First name:     %s\n", contact->firstName);
+    printf("Last name:      %s\n", contact->lastName);
+    printf("Phone number:   %s\n", contact->phoneNum);
+    printf("Email address:  %s\n", contact->emailAddress);
+
+    printf("Press Enter to continue...");
+    fflush(stdout); // Flush the output buffer to ensure prompt display
+
+    // Clear input buffer
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+
+    // Wait for Enter key
+    getchar();
 }

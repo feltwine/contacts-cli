@@ -6,10 +6,26 @@
 #include <dirent.h>
 
 
+void show_contact_detail(Contact *contact)
+{
+
+    printf("Contact details: \n");
+    printf("First name:     \n", contact->firstName);
+    printf("Last name:      \n", contact->lastName);
+    printf("Phone number:   \n", contact->phoneNum);
+    printf("Email address:  \n", contact->emailAddress);
+}
+
+
+void search_contact(Contact *head, char *value)
+{
+}
+
+
 int main(void)
 {
     /*** init ***/
-    const char *contactsPath = "contacts/";
+    const char *contactsPath = "contacts\\";
     DIR *contactsDir;
     Contact *head = NULL;
     struct dirent *entry;
@@ -85,6 +101,8 @@ int main(void)
             printf("[ 5 ]    quit program\n");
             printf("Option: ");
             scanf("%d", &choice);
+            printf("\n\n\n");
+
             Contact *temp = head;
             int choice_index;
 
@@ -101,7 +119,7 @@ int main(void)
                     scanf("%d", &choice_index);
                     temp = find_contact_by_index(head, choice_index);
                     if (temp != NULL) {
-                        //show_contact_details(temp);
+                        show_contact_detail(temp);
                     } else {
                         printf("Contact not found.\n");
                     }

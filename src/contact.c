@@ -142,7 +142,7 @@ void generate_new_file(char *fileName)
 {
     if (chdir("contacts") != 0)
     {
-        fprintf(stderr, "Error: Failed to change directory to 'contacts/'.\n");
+        fprintf(stderr, "Error: Failed to change directory to 'contacts\\'.\n");
         exit(1);
     }
 
@@ -224,7 +224,7 @@ void remove_contact(Contact *contact) {
     }
 
     if (chdir("contacts") == -1) {
-        fprintf(stderr, "Error: Could not change directory to 'contacts/'.\n");
+        fprintf(stderr, "Error: Could not change directory to 'contacts\\'.\n");
         return;
     }
     if (remove(contact->fileName) == -1) 

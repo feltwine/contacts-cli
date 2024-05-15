@@ -21,3 +21,8 @@ Ensure you have Premake installed on your system. You can download Premake from 
    ```bash
    premake5 xcode4
    ```
+
+2. **Build project from Makefile**:
+   ```bash
+   make
+   ```

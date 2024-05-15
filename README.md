@@ -26,3 +26,11 @@ Ensure you have Premake installed on your system. You can download Premake from 
    ```bash
    make
    ```
+
+### Contact file example
+   ```bash
+   first-name: "Pavel"
+   last-name: "Novák"
+   email-address: "novak.pavel@example.com"
+   phone-number: "+420 123 456 789"
+   ```

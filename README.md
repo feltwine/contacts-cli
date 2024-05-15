@@ -12,5 +12,12 @@ Ensure you have Premake installed on your system. You can download Premake from 
 ### Building the Project
 
 1. **Generate project files**: Run Premake to generate project files for your desired build system. For example, to generate Makefiles:
+   for linux: 
    ```bash
    premake5 gmake
+   ```
+   
+   for mac: 
+   ```bash
+   premake5 xcode4
+   ```

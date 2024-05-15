@@ -7,7 +7,7 @@ This project uses Premake for build configuration. Follow these steps to build t
 
 ### Installation
 
-Ensure you have Premake installed on your system. You can download Premake from [here](https://premake.github.io/download.html) and follow the installation instructions provided.
+Ensure you have Premake installed on your system. You can download Premake from [here](https://premake.github.io) and follow the installation instructions provided.
 
 ### Building the Project
 

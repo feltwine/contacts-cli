@@ -10,7 +10,7 @@ This project uses Premake for build configuration. Follow these steps to build t
 Ensure you have Premake installed on your system. You can download Premake from [here](https://premake.github.io) and follow the installation instructions provided.
 
 ### Building the Project
-1. **Generate project files**: Run Premake to generate project files for your desired build system. For example, to generate Makefiles:
+1. **Generate project files**: Run Premake to generate Makefiles:
 
    For Linux:
    ```bash
